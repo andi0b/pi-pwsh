@@ -2,6 +2,8 @@
 
 A small pi package that adds a `pwsh` tool for running PowerShell commands.
 
+> Note: this extension is vibe slopped.
+
 Currently developed for Windows, but it should (might?) work on Linux/macOS too if `pwsh` is installed
 
 ## What it provides
