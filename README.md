@@ -2,6 +2,12 @@
 
 A small pi package that adds a `pwsh` tool for running PowerShell commands.
 
+It tries to behave like pi's built-in `bash` tool, including:
+
+- similar truncation behavior
+- similar output rendering
+- matching shell shortcut behavior: `!` / `!!` for bash, and `>` / `>>` for pwsh
+
 > Note: this extension is vibe slopped.
 
 Currently developed for Windows, but it should (might?) work on Linux/macOS too if `pwsh` is installed
