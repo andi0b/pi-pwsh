@@ -1,0 +1,14 @@
+{
+  "name": "pi-pwsh",
+  "version": "0.1.0",
+  "description": "Pi package that adds a PowerShell pwsh tool.",
+  "keywords": ["pi-package"],
+  "type": "module",
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*"
+  },
+  "pi": {
+    "extensions": ["./extensions"]
+  }
+}
