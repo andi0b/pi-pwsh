@@ -270,6 +270,11 @@ export default function (pi: ExtensionAPI) {
 		name: "pwsh",
 		label: "pwsh",
 		description: `Execute a PowerShell (pwsh) command in the current working directory. Prefer using the bash tool by default; use this pwsh tool only when PowerShell is better suited for the task. Returns stdout and stderr. Output is truncated to last ${DEFAULT_MAX_LINES} lines or ${formatSize(DEFAULT_MAX_BYTES)} (whichever is hit first). If truncated, full output is saved to a temp file. Optionally provide a timeout in seconds.`,
+		promptSnippet: "Execute PowerShell commands when PowerShell is a better fit than bash.",
+		promptGuidelines: [
+			"Prefer using the bash tool by default; use this tool only for PowerShell-specific tasks or when the user explicitly asks for PowerShell.",
+			"If a bash command fails, do not retry it in PowerShell just to see whether it works there. Use PowerShell only when it is genuinely a better fit for the task.",
+		],
 		renderCall(args, theme) {
 			const command = typeof args?.command === "string" ? args.command : null;
 			const timeout = typeof args?.timeout === "number" ? args.timeout : undefined;
