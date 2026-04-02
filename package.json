@@ -4,6 +4,9 @@
   "description": "Pi package that adds a PowerShell pwsh tool.",
   "keywords": ["pi-package"],
   "type": "module",
+  "dependencies": {
+    "strip-ansi": "^7.1.0"
+  },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*",
     "@mariozechner/pi-tui": "*"

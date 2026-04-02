@@ -6,6 +6,7 @@ import { join } from "node:path";
 import type { BashOperations, ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { CustomEditor, DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, createBashTool, formatSize, keyHint, truncateTail } from "@mariozechner/pi-coding-agent";
 import { Text } from "@mariozechner/pi-tui";
+import stripAnsi from "strip-ansi";
 
 const OUTPUT_SAFETY_MARGIN_BYTES = 1024;
 const PWSH_PREVIEW_LINES = 5;
@@ -75,10 +76,25 @@ function maybePostTruncateText(text: string) {
 	};
 }
 
-function getTextOutput(result: { content: Array<{ type: string; text?: string }> }): string {
+function sanitizeBinaryOutput(text: string): string {
+	return Array.from(text)
+		.filter((char) => {
+			const code = char.codePointAt(0);
+			if (code === undefined) return false;
+			if (code === 0x09 || code === 0x0a || code === 0x0d) return true;
+			if (code <= 0x1f) return false;
+			if (code >= 0xfff9 && code <= 0xfffb) return false;
+			return true;
+		})
+		.join("");
+}
+
+function getTextOutput(result: {
+	content: Array<{ type: string; text?: string; data?: string; mimeType?: string }>;
+}): string {
 	return (result.content ?? [])
 		.filter((c) => c.type === "text")
-		.map((c) => (c.text ?? "").replace(/\r/g, ""))
+		.map((c) => sanitizeBinaryOutput(stripAnsi(c.text ?? "")).replace(/\r/g, ""))
 		.join("\n");
 }
 
