@@ -8,9 +8,11 @@ It tries to behave like pi's built-in `bash` tool, including:
 - similar output rendering
 - matching shell shortcut behavior: `!` / `!!` for bash, and `>` / `>>` for pwsh
 
-> Note: this extension is vibe slopped.
+> Note: this extension is carefully vibe slopped.
 
-Currently developed for Windows, but it should (might?) work on Linux/macOS too if `pwsh` is installed
+Currently developed for Windows, but it should (might?) work on Linux/macOS too if `pwsh` is installed.
+
+Does not work with `powershell`, it requires `pwsh` (PowerShell 7+) in path.
 
 ## What it provides
 
@@ -43,3 +45,8 @@ Examples:
 ```
 
 These are converted into pi bang commands internally and executed with `pwsh`.
+
+## See also
+
+- [marcfargas/pi-powershell](https://github.com/marcfargas/pi-powershell): Another pi PowerShell extension, with more features regarding background jobs
+- [Codex PowerShell implementation](https://github.com/openai/codex/blob/d44f4205fb93ca1f602a21f110d795bd499a1e07/codex-rs/shell-command/src/powershell.rs)
