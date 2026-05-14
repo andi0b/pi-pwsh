@@ -3,14 +3,15 @@ import { spawn } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { BashOperations, ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { CustomEditor, DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, createBashTool, formatSize, keyHint, truncateTail } from "@mariozechner/pi-coding-agent";
-import { Text } from "@mariozechner/pi-tui";
+import type { BashOperations, ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { CustomEditor, DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, createBashTool, formatSize, keyHint, truncateTail } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
 import stripAnsi from "strip-ansi";
 
 const OUTPUT_SAFETY_MARGIN_BYTES = 1024;
 const PWSH_PREVIEW_LINES = 5;
 const UTF8_OUTPUT_PREFIX = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;\n";
+const PWSH_EDITOR_FACTORY_MARK = Symbol.for("pi-pwsh.editorFactory");
 
 function killProcessTree(pid: number) {
 	try {
@@ -255,11 +256,57 @@ export default function (pi: ExtensionAPI) {
 		}
 	}
 
-	function installPwshPrefixEditor(ctx: { hasUI: boolean; ui: { setEditorComponent: (factory: any) => void } }) {
+	type EditorFactory = (tui: any, theme: any, keybindings: any) => any;
+	type EditorUI = {
+		setEditorComponent: (factory: EditorFactory | undefined) => void;
+		getEditorComponent?: () => EditorFactory | undefined;
+	};
+
+	function createPwshEditorFactory(previousFactory?: EditorFactory): EditorFactory {
+		const factory: EditorFactory = (tui, theme, keybindings) => {
+			if (!previousFactory) {
+				return new PwshPrefixEditor(tui, theme, keybindings);
+			}
+
+			const editor = previousFactory(tui, theme, keybindings);
+			const originalHandleInput = editor?.handleInput?.bind(editor);
+			if (
+				typeof originalHandleInput !== "function" ||
+				typeof editor?.getText !== "function" ||
+				typeof editor?.setText !== "function"
+			) {
+				return editor;
+			}
+
+			editor.handleInput = (data: string) => {
+				if (keybindings.matches(data, "tui.input.submit")) {
+					const parsed = parsePwshBangInput(editor.getText());
+					if (parsed) {
+						const displayCommand = `${pwshBangCommandPrefix}${parsed.command}`;
+						queuePwshBangCommand(displayCommand, parsed.excludeFromContext);
+						editor.setText(`${parsed.excludeFromContext ? "!!" : "!"} ${displayCommand}`);
+					}
+				}
+				originalHandleInput(data);
+			};
+
+			return editor;
+		};
+		Object.defineProperty(factory, PWSH_EDITOR_FACTORY_MARK, { value: true });
+		return factory;
+	}
+
+	function installPwshPrefixEditor(ctx: { hasUI: boolean; ui: EditorUI }) {
 		if (!ctx.hasUI) {
 			return;
 		}
-		ctx.ui.setEditorComponent((tui: any, theme: any, keybindings: any) => new PwshPrefixEditor(tui, theme, keybindings));
+
+		const previousFactory = ctx.ui.getEditorComponent?.();
+		if ((previousFactory as any)?.[PWSH_EDITOR_FACTORY_MARK]) {
+			return;
+		}
+
+		ctx.ui.setEditorComponent(createPwshEditorFactory(previousFactory));
 	}
 
 	pi.on("resources_discover", (_event, ctx) => {
@@ -267,10 +314,6 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("session_start", (_event, ctx) => {
-		installPwshPrefixEditor(ctx as any);
-	});
-
-	pi.on("session_switch", (_event, ctx) => {
 		installPwshPrefixEditor(ctx as any);
 	});
 
