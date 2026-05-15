@@ -6,7 +6,7 @@ It tries to behave like pi's built-in `bash` tool, including:
 
 - similar truncation behavior
 - similar output rendering
-- matching shell shortcut behavior: `!` / `!!` for bash, and `>` / `>>` for pwsh
+- shell shortcut behavior via `!p` / `!!p` and `!pwsh` / `!!pwsh`
 
 > Note: this extension is carefully vibe slopped.
 
@@ -32,19 +32,17 @@ use pwsh to list all services
 
 ### PowerShell bang shortcuts
 
-This package also supports quick PowerShell commands directly from the input line:
+This package also supports quick PowerShell commands through pi's regular bang-command path. Bang shortcut output starts with a `[pwsh]` marker so it is clear PowerShell handled the command:
 
-- `> command` — runs the command through PowerShell and includes the result in context
-- `>> command` — runs the command through PowerShell but excludes the result from context
+- `!p command` or `!pwsh command` — runs the command through PowerShell and includes the result in context
+- `!!p command` or `!!pwsh command` — runs the command through PowerShell but excludes the result from context
 
 Examples:
 
 ```text
-> Get-ChildItem
->> Get-Process | Sort-Object CPU -Descending | Select-Object -First 20
+!p Get-ChildItem
+!!pwsh Get-Process | Sort-Object CPU -Descending | Select-Object -First 20
 ```
-
-These are converted into pi bang commands internally and executed with `pwsh`.
 
 ## See also
 
