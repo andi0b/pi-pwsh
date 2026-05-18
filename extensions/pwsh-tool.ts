@@ -11,10 +11,12 @@ const UTF8_OUTPUT_PREFIX = "[Console]::OutputEncoding=[System.Text.Encoding]::UT
 
 interface PwshToolSettings {
 	replaceBash: boolean;
+	availableCommands: string[];
 }
 
 const DEFAULT_SETTINGS: PwshToolSettings = {
 	replaceBash: false,
+	availableCommands: ["rg", "jq", "yq", "curl", "sed"],
 };
 
 const pwshSchema = Type.Object({
@@ -31,7 +33,8 @@ function detectAvailablePwshCommands(commands: string[]): string[] {
 	});
 }
 
-function createPwshToolText(replaceBash: boolean) {
+function createPwshToolText(settings: PwshToolSettings) {
+	const { replaceBash } = settings;
 	if (!replaceBash) {
 		return {
 			description: `Execute a PowerShell (pwsh) command in the current working directory. Prefer using the bash tool by default; use this pwsh tool only when PowerShell is better suited for the task. Returns stdout and stderr. Output is truncated to last ${DEFAULT_MAX_LINES} lines or ${formatSize(DEFAULT_MAX_BYTES)} (whichever is hit first). If truncated, full output is saved to a temp file. Optionally provide a timeout in seconds.`,
@@ -43,11 +46,14 @@ function createPwshToolText(replaceBash: boolean) {
 		};
 	}
 
-	const availableCommands = detectAvailablePwshCommands(["rg", "jq"]);
+	const availableCommands = detectAvailablePwshCommands(settings.availableCommands);
 	return {
 		description: `Execute a PowerShell (pwsh) command in the current working directory. Returns stdout and stderr. Output is truncated to last ${DEFAULT_MAX_LINES} lines or ${DEFAULT_MAX_BYTES / 1024}KB (whichever is hit first). If truncated, full output is saved to a temp file. Optionally provide a timeout in seconds.`,
 		promptSnippet: "Execute PowerShell commands (Get-ChildItem, Select-String, Get-Content, etc.)",
-		promptGuidelines: availableCommands.length > 0 ? [`Available commands include: ${availableCommands.join(", ")}.`] : undefined,
+		promptGuidelines:
+			availableCommands.length > 0
+				? [`Available commands include: ${availableCommands.join(", ")} (configured by pwshTool.availableCommands in settings).`]
+				: undefined,
 	};
 }
 
@@ -81,12 +87,15 @@ function readSettings(cwd: string = process.cwd()): Record<string, unknown> {
 function readPwshToolSettings(cwd: string): PwshToolSettings {
 	const settings = readSettings(cwd);
 	const pwshTool = settings.pwshTool;
-	const replaceBash =
-		typeof pwshTool === "object" && pwshTool !== null && !Array.isArray(pwshTool)
-			? (pwshTool as Record<string, unknown>).replaceBash
-			: undefined;
+	const pwshToolSettings = typeof pwshTool === "object" && pwshTool !== null && !Array.isArray(pwshTool) ? (pwshTool as Record<string, unknown>) : {};
+	const replaceBash = pwshToolSettings.replaceBash;
+	const availableCommands = pwshToolSettings.availableCommands;
 	return {
 		replaceBash: typeof replaceBash === "boolean" ? replaceBash : DEFAULT_SETTINGS.replaceBash,
+		availableCommands:
+			Array.isArray(availableCommands) && availableCommands.every((command) => typeof command === "string")
+				? availableCommands
+				: DEFAULT_SETTINGS.availableCommands,
 	};
 }
 
@@ -229,7 +238,7 @@ export default function (pi: ExtensionAPI) {
 		return { operations: prefixedPwshUserBashOperations };
 	});
 
-	const pwshToolText = createPwshToolText(settings.replaceBash);
+	const pwshToolText = createPwshToolText(settings);
 	const pwshTool: typeof baseBashTool = {
 		...baseBashTool,
 		...pwshToolText,

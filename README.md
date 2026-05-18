@@ -19,6 +19,7 @@ Does not work with `powershell`, it requires `pwsh` (PowerShell 7+) in path.
 - `pwsh` tool for executing PowerShell in the current working directory
 - keeps `bash` as the default shell tool by default
 - optional `pwshTool.replaceBash` setting to remove the built-in `bash` tool from the active tool list and run bang commands through PowerShell
+- optional `pwshTool.availableCommands` setting to configure which commands are detected and mentioned in the tool instructions
 - useful when a task is easier in PowerShell than in bash
 
 ### PowerShell tool
@@ -65,6 +66,21 @@ When enabled:
 - `!command` and `!!command` run through `pwsh`
 
 Set this in `settings.json` before starting pi; there is no interactive toggle command.
+
+To configure which common commands are detected and mentioned in the `pwsh` tool instructions when `replaceBash` is enabled, set `pwshTool.availableCommands`:
+
+```json
+{
+  "pwshTool": {
+    "replaceBash": true,
+    "availableCommands": ["rg", "jq", "yq", "curl"]
+  }
+}
+```
+
+Only commands found on PATH are included in the generated instructions.
+
+This detection is intentionally surfaced in the tool guidelines because LLMs often assume Unix-oriented helpers such as `rg`, `jq`, or `curl` are unavailable when the shell is Windows/PowerShell. Listing the commands that are actually available helps the model use them confidently instead of falling back to slower or less appropriate alternatives.
 
 ## See also
 
