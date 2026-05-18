@@ -17,7 +17,8 @@ Does not work with `powershell`, it requires `pwsh` (PowerShell 7+) in path.
 ## What it provides
 
 - `pwsh` tool for executing PowerShell in the current working directory
-- keeps `bash` as the default shell tool
+- keeps `bash` as the default shell tool by default
+- optional `pwshTool.replaceBash` setting to remove the built-in `bash` tool from the active tool list and run bang commands through PowerShell
 - useful when a task is easier in PowerShell than in bash
 
 ### PowerShell tool
@@ -43,6 +44,27 @@ Examples:
 !p Get-ChildItem
 !!pwsh Get-Process | Sort-Object CPU -Descending | Select-Object -First 20
 ```
+
+## Settings
+
+To make PowerShell fully replace pi's integrated bash workflow, add this to `~/.pi/agent/settings.json` or `.pi/settings.json`:
+
+```json
+{
+  "pwshTool": {
+    "replaceBash": true
+  }
+}
+```
+
+When enabled:
+
+- `bash` is removed from the active tool list
+- `pwsh` remains registered as `pwsh` (it is not registered as `bash`)
+- tool instructions no longer say to prefer bash
+- `!command` and `!!command` run through `pwsh`
+
+Set this in `settings.json` before starting pi; there is no interactive toggle command.
 
 ## See also
 
