@@ -48,39 +48,25 @@ Examples:
 
 ## Settings
 
-To make PowerShell fully replace pi's integrated bash workflow, add this to `~/.pi/agent/settings.json` or `.pi/settings.json`:
+Configure the package in `~/.pi/agent/settings.json` or `.pi/settings.json` under `pwshTool`. Defaults:
 
 ```json
 {
   "pwshTool": {
-    "replaceBash": true
+    "replaceBash": false,
+    "availableCommands": ["rg", "jq", "yq", "curl", "sed"]
   }
 }
 ```
 
-When enabled:
+Set options before starting pi; there is no interactive toggle command.
 
-- `bash` is removed from the active tool list
-- `pwsh` remains registered as `pwsh` (it is not registered as `bash`)
-- tool instructions no longer say to prefer bash
-- `!command` and `!!command` run through `pwsh`
+| Option | Default | Description |
+| --- | --- | --- |
+| `replaceBash` | `false` | When `true`, removes `bash` from the active tool list, keeps this tool registered as `pwsh`, removes the instruction to prefer bash, and runs `!command` / `!!command` through PowerShell. |
+| `availableCommands` | `["rg", "jq", "yq", "curl", "sed"]` | Common commands to detect on PATH and mention in the `pwsh` tool guidelines when `replaceBash` is enabled. Only commands actually found on PATH are listed. Set to `[]` to remove this guideline completely. |
 
-Set this in `settings.json` before starting pi; there is no interactive toggle command.
-
-To configure which common commands are detected and mentioned in the `pwsh` tool instructions when `replaceBash` is enabled, set `pwshTool.availableCommands`:
-
-```json
-{
-  "pwshTool": {
-    "replaceBash": true,
-    "availableCommands": ["rg", "jq", "yq", "curl"]
-  }
-}
-```
-
-Only commands found on PATH are included in the generated instructions.
-
-This detection is intentionally surfaced in the tool guidelines because LLMs often assume Unix-oriented helpers such as `rg`, `jq`, or `curl` are unavailable when the shell is Windows/PowerShell. Listing the commands that are actually available helps the model use them confidently instead of falling back to slower or less appropriate alternatives.
+The `availableCommands` guideline exists because LLMs often assume Unix-oriented helpers such as `rg`, `jq`, or `curl` are unavailable when the shell is Windows/PowerShell. Listing commands that are actually available helps the model use them confidently instead of falling back to slower or less appropriate alternatives.
 
 ## See also
 

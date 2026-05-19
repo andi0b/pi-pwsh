@@ -52,7 +52,7 @@ function createPwshToolText(settings: PwshToolSettings) {
 		promptSnippet: "Execute PowerShell commands (Get-ChildItem, Select-String, Get-Content, etc.)",
 		promptGuidelines:
 			availableCommands.length > 0
-				? [`Available commands include: ${availableCommands.join(", ")} (configured by pwshTool.availableCommands in settings).`]
+				? [`Available pwsh commands include: ${availableCommands.join(", ")}`]
 				: undefined,
 	};
 }
