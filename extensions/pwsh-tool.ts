@@ -52,7 +52,10 @@ function createPwshToolText(settings: PwshToolSettings) {
 		promptSnippet: "Execute PowerShell commands (Get-ChildItem, Select-String, Get-Content, etc.)",
 		promptGuidelines:
 			availableCommands.length > 0
-				? [`Available pwsh commands include: ${availableCommands.join(", ")}`]
+				? [
+					`Available pwsh commands include: ${availableCommands.join(", ")}`,
+					"For compound pwsh commands with mixed output types, pipe earlier commands to `Out-Host` to prevent later output from falling back to verbose list formatting; for example: `Get-Location | Out-Host; Get-ChildItem -Force`.",
+				]
 				: undefined,
 	};
 }
