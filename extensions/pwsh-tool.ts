@@ -16,7 +16,7 @@ interface PwshToolSettings {
 
 const DEFAULT_SETTINGS: PwshToolSettings = {
 	replaceBash: false,
-	availableCommands: ["rg", "jq", "yq", "curl", "sed"],
+	availableCommands: ["rg", "fd", "jq", "yq", "curl", "sed"],
 };
 
 const pwshSchema = Type.Object({
@@ -54,6 +54,12 @@ function createPwshToolText(settings: PwshToolSettings) {
 			availableCommands.length > 0
 				? [
 					`Available pwsh commands include: ${availableCommands.join(", ")}`,
+					...(availableCommands.includes("rg")
+						? ["Prefer `rg` for text search instead of PowerShell-specific commands such as `Select-String` when appropriate."]
+						: []),
+					...(availableCommands.includes("fd")
+						? ["Prefer `fd` for file discovery instead of PowerShell-specific commands such as `Get-ChildItem` when appropriate."]
+						: []),
 					"For compound pwsh commands with mixed output types, pipe earlier commands to `Out-Host` to prevent later output from falling back to verbose list formatting; for example: `Get-Location | Out-Host; Get-ChildItem -Force`.",
 				]
 				: undefined,

@@ -54,7 +54,7 @@ Configure the package in `~/.pi/agent/settings.json` or `.pi/settings.json` unde
 {
   "pwshTool": {
     "replaceBash": false,
-    "availableCommands": ["rg", "jq", "yq", "curl", "sed"]
+    "availableCommands": ["rg", "fd", "jq", "yq", "curl", "sed"]
   }
 }
 ```
@@ -64,9 +64,9 @@ Set options before starting pi; there is no interactive toggle command.
 | Option | Default | Description |
 | --- | --- | --- |
 | `replaceBash` | `false` | When `true`, removes `bash` from the active tool list, keeps this tool registered as `pwsh`, removes the instruction to prefer bash, and runs `!command` / `!!command` through PowerShell. |
-| `availableCommands` | `["rg", "jq", "yq", "curl", "sed"]` | Common commands to detect on PATH and mention in the `pwsh` tool guidelines when `replaceBash` is enabled. Only commands actually found on PATH are listed. Set to `[]` to remove this guideline completely. |
+| `availableCommands` | `["rg", "fd", "jq", "yq", "curl", "sed"]` | Common commands to detect on PATH and mention in the `pwsh` tool guidelines when `replaceBash` is enabled. Only commands actually found on PATH are listed. Set to `[]` to remove this guideline completely. |
 
-The `availableCommands` guideline exists because LLMs often assume Unix-oriented helpers such as `rg`, `jq`, or `curl` are unavailable when the shell is Windows/PowerShell. Listing commands that are actually available helps the model use them confidently instead of falling back to slower or less appropriate alternatives.
+The `availableCommands` guideline exists because LLMs often assume Unix-oriented helpers such as `rg`, `fd`, `jq`, or `curl` are unavailable when the shell is Windows/PowerShell. Listing commands that are actually available helps the model use them confidently instead of falling back to slower or less appropriate alternatives. In pwsh-only mode, the prompt also adds separate guidelines for `rg` and `fd` when each is available, telling the model to prefer them for text search and file discovery over PowerShell-specific commands where appropriate.
 
 ## See also
 
