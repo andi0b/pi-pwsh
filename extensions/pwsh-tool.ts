@@ -11,11 +11,13 @@ const UTF8_OUTPUT_PREFIX = "[Console]::OutputEncoding=[System.Text.Encoding]::UT
 
 interface PwshToolSettings {
 	replaceBash: boolean;
+	removeRead: boolean;
 	availableCommands: string[];
 }
 
 const DEFAULT_SETTINGS: PwshToolSettings = {
 	replaceBash: false,
+	removeRead: false,
 	availableCommands: ["rg", "fd", "jq", "yq", "curl", "sed"],
 };
 
@@ -98,9 +100,11 @@ function readPwshToolSettings(cwd: string): PwshToolSettings {
 	const pwshTool = settings.pwshTool;
 	const pwshToolSettings = typeof pwshTool === "object" && pwshTool !== null && !Array.isArray(pwshTool) ? (pwshTool as Record<string, unknown>) : {};
 	const replaceBash = pwshToolSettings.replaceBash;
+	const removeRead = pwshToolSettings.removeRead;
 	const availableCommands = pwshToolSettings.availableCommands;
 	return {
 		replaceBash: typeof replaceBash === "boolean" ? replaceBash : DEFAULT_SETTINGS.replaceBash,
+		removeRead: typeof removeRead === "boolean" ? removeRead : DEFAULT_SETTINGS.removeRead,
 		availableCommands:
 			Array.isArray(availableCommands) && availableCommands.every((command) => typeof command === "string")
 				? availableCommands
@@ -207,13 +211,24 @@ function createPwshUserBashOperations(pwshOperations: BashOperations, options?: 
 	};
 }
 
-function applyReplaceBashTools(pi: ExtensionAPI): void {
+function applyConfiguredActiveTools(pi: ExtensionAPI, settings: PwshToolSettings): void {
 	const activeTools = pi.getActiveTools();
-	const nextTools = activeTools.filter((name) => name !== "bash");
-	if (!nextTools.includes("pwsh")) {
-		nextTools.push("pwsh");
+	let nextTools = activeTools;
+
+	if (settings.replaceBash) {
+		nextTools = nextTools.filter((name) => name !== "bash");
+		if (!nextTools.includes("pwsh")) {
+			nextTools.push("pwsh");
+		}
 	}
-	pi.setActiveTools(nextTools);
+
+	if (settings.removeRead) {
+		nextTools = nextTools.filter((name) => name !== "read");
+	}
+
+	if (nextTools !== activeTools) {
+		pi.setActiveTools(nextTools);
+	}
 }
 
 export default function (pi: ExtensionAPI) {
@@ -226,15 +241,11 @@ export default function (pi: ExtensionAPI) {
 	const baseBashTool = createBashToolDefinition(cwd, { operations: pwshOperations });
 
 	pi.on("session_start", () => {
-		if (readPwshToolSettings(cwd).replaceBash) {
-			applyReplaceBashTools(pi);
-		}
+		applyConfiguredActiveTools(pi, readPwshToolSettings(cwd));
 	});
 
 	pi.on("before_agent_start", () => {
-		if (readPwshToolSettings(cwd).replaceBash) {
-			applyReplaceBashTools(pi);
-		}
+		applyConfiguredActiveTools(pi, readPwshToolSettings(cwd));
 	});
 
 	pi.on("user_bash", (event) => {

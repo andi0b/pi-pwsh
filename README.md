@@ -19,6 +19,7 @@ Does not work with `powershell`, it requires `pwsh` (PowerShell 7+) in path.
 - `pwsh` tool for executing PowerShell in the current working directory
 - keeps `bash` as the default shell tool by default
 - optional `pwshTool.replaceBash` setting to remove the built-in `bash` tool from the active tool list and run bang commands through PowerShell
+- optional `pwshTool.removeRead` setting to remove the built-in `read` tool from the active tool list
 - optional `pwshTool.availableCommands` setting to configure which commands are detected and mentioned in the tool instructions
 - useful when a task is easier in PowerShell than in bash
 
@@ -54,6 +55,7 @@ Configure the package in `~/.pi/agent/settings.json` or `.pi/settings.json` unde
 {
   "pwshTool": {
     "replaceBash": false,
+    "removeRead": false,
     "availableCommands": ["rg", "fd", "jq", "yq", "curl", "sed"]
   }
 }
@@ -64,6 +66,7 @@ Set options before starting pi; there is no interactive toggle command.
 | Option | Default | Description |
 | --- | --- | --- |
 | `replaceBash` | `false` | When `true`, removes `bash` from the active tool list, keeps this tool registered as `pwsh`, removes the instruction to prefer bash, and runs `!command` / `!!command` through PowerShell. |
+| `removeRead` | `false` | When `true`, removes `read` from the active tool list. Useful if you want agents to inspect files through `pwsh` commands instead. |
 | `availableCommands` | `["rg", "fd", "jq", "yq", "curl", "sed"]` | Common commands to detect on PATH and mention in the `pwsh` tool guidelines when `replaceBash` is enabled. Only commands actually found on PATH are listed. Set to `[]` to remove this guideline completely. |
 
 The `availableCommands` guideline exists because LLMs often assume Unix-oriented helpers such as `rg`, `fd`, `jq`, or `curl` are unavailable when the shell is Windows/PowerShell. Listing commands that are actually available helps the model use them confidently instead of falling back to slower or less appropriate alternatives. In pwsh-only mode, the prompt also adds separate guidelines for `rg` and `fd` when each is available, telling the model to prefer them for text search and file discovery over PowerShell-specific commands where appropriate.
