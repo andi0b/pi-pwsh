@@ -62,7 +62,8 @@ function createPwshToolText(settings: PwshToolSettings) {
 					...(availableCommands.includes("fd")
 						? ["Prefer `fd` for file discovery instead of PowerShell-specific commands such as `Get-ChildItem` when appropriate."]
 						: []),
-					"For compound pwsh commands with mixed output types, pipe earlier commands to `Out-Host` to prevent later output from falling back to verbose list formatting; for example: `Get-Location | Out-Host; Get-ChildItem -Force`.",
+					"For compound pwsh commands, use `Out-Host` after earlier PowerShell object-producing commands when followed by commands that output different object types, e.g. `Get-Location | Out-Host; Get-ChildItem -Force`. Not needed for native text commands like `rg` or `git`.",
+					"Double-quote file names that contain spaces or special characters, e.g. `Get-Content \"file name.txt\"`.",
 				]
 				: undefined,
 	};
